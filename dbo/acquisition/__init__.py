@@ -1,2 +1,0 @@
-from torch import Tensor
-from botorch.acquisition.analytic import AnalyticAcquisitionFunction
