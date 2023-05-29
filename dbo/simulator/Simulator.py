@@ -113,7 +113,7 @@ class Simulator:
         std = train_obj.std().item()
         return (train_obj - mean)/std, mean, std
     
-    def revert_output(train_obj : Tensor, mean : float, std : float) -> Tensor:
+    def revert_output(self, train_obj : Tensor, mean : float, std : float) -> Tensor:
         """
         Convert output from z-score normalized into regular form
 
