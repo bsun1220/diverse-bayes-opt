@@ -66,7 +66,6 @@ class ExperimentMetrics(Metrics):
         
         for experiment in experiment_list:
             min_val = experiment.y.min()
-            train_x = experiment.x
             
             factor = (1 + eps) if experiment.min > 0 else (1 - eps)
             
