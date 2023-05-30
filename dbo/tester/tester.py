@@ -30,10 +30,11 @@ class Tester:
         error term in fixed noise Gaussian Process
     """
     def __init__(self, num_design : int, num_sim : int, refit_param : 
-                 int, error_term : float = 10**(-6)) -> None:
+                 int, error_term : float = 10**(-2)) -> None:
         self.num_design = num_design
         self.num_sim = num_sim
         self.refit_param = refit_param
+        self.error_term = error_term
     
     def perform_bayes_opt(self, simulator : Simulator, 
                           acquisition : AnalyticAcquisitionFunction,
@@ -65,7 +66,7 @@ class Tester:
         model_bounds = torch.tensor([[0.0] * dim, [1.0] * dim])
         model_input = simulator.scalarize_input(obs_x)
         model_output, mean, sigma = simulator.scalarize_output(obs_obj)
-        var = torch.zeros(model_output.shape) + 10**(-6)
+        var = torch.zeros(model_output.shape) + self.error_term
         
         model = FixedNoiseGP(train_X = model_input, train_Y = model_output, train_Yvar = var)
         mll = ExactMarginalLogLikelihood(model.likelihood, model)
@@ -81,9 +82,9 @@ class Tester:
             reg_eval_result = (eval_result - mean)/sigma
             model_input = torch.cat((model_input, new_point), 0)
             model_output = torch.cat((model_output, reg_eval_result), 0)
-            var = torch.cat((var, torch.as_tensor(10**-6).expand(1,1)), 0)
+            var = torch.cat((var, torch.as_tensor(self.error_term).expand(1,1)), 0)
             model = model.condition_on_observations(X = new_point, Y = reg_eval_result, 
-                                                noise = torch.as_tensor(5 * 10**-4).expand(1,1))
+                                                noise = torch.as_tensor(self.error_term).expand(1,1))
             
             if i % dim * self.refit_param == 0:
                 model_output = simulator.revert_output(model_output, mean, sigma)
