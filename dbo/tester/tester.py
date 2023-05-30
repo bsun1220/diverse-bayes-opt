@@ -28,7 +28,6 @@ class Tester:
         Refitting rate per dimension
     error_term : float
         error term in fixed noise Gaussian Process
-    param_settings : 
     """
     def __init__(self, num_design : int, num_sim : int, refit_param : 
                  int, error_term : float = 10**(-6)) -> None:
@@ -39,6 +38,23 @@ class Tester:
     def perform_bayes_opt(self, simulator : Simulator, 
                           acquisition : AnalyticAcquisitionFunction,
                           param_settings : dict = {}) -> BayesOptResult:
+        """
+        Full bayesian optimization loop
+
+        Args
+        ----------
+        simulator : Simulator
+            a function to optimize over
+        acquisition : AnalyticAcquisitionFunction
+            a custom acquisition function 
+        param_settings : dict
+            custom parameter settings for the acquisition function
+        
+        Returns
+        ----------
+        result : BayesOptResult
+            Returns all x and y values from the optimization loop
+        """
         dim = simulator.dim
         
         #actual observed
@@ -85,7 +101,23 @@ class Tester:
     
     def perform_known_experiment(self, num_trials : int, simulator_list: list[Simulator],
                            acquisition_list : list[tuple[AnalyticAcquisitionFunction, dict]]) -> list[ExperimentResult]:
+        """
+        Performs optimization over trial, acquisition, and simulator
+
+        Args
+        ----------
+        num_trials : int
+            Number of total trials
+        simulator_list : list[Simulator]
+            list offunctions to optimize over
+        acquisition_list : list[tuple[AnalyticAcquisitionFunction, dict]]
+            a custom acquisition function list with parameter settings
         
+        Returns
+        ----------
+        result : list[ExperimentResult]
+            list of result containing, trial, acqf, sim, x, y, and min
+        """
         ans_list = []
         
         for trial in range(num_trials):

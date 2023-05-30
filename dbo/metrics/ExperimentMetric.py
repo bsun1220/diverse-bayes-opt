@@ -4,13 +4,34 @@ from pandas import DataFrame
 import torch
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
+from torch import Tensor
 
 class ExperimentMetrics(Metrics):
+    """
+    ExperimentMetrics Class used after testing TestFunctions
+    
+    """
     def __init__(self):
         super().__init__()
     
     
-    def get_sil_score(self, points, max_k = 5):
+    def get_sil_score(self, points : Tensor, max_k : int = 5) -> int:
+        """
+        Get most indicative cluster number in solution set
+
+        Args
+        ----------
+        points : Tensor
+            list of points to perform clustering on
+        
+        max_k : int
+            maximum cluster number to test
+        
+        Returns 
+        ----------
+        Index : int
+            Best fit clustern number after using silhouette score
+        """
         if points.shape[0] < 6:
             return 1
 
@@ -23,6 +44,23 @@ class ExperimentMetrics(Metrics):
         return np.argmax(np.array(sil)) + 2
         
     def get_dataframe(self, experiment_list : list[ExperimentResult], eps : float) -> DataFrame:
+        """
+        Return dataframe based on specified 
+
+        Args
+        ----------
+        experiment_list : list[ExperimentalResult]
+            result object after experiment test
+        eps : float
+            error parameter characterizing what is 
+            in the solution set
+        
+        Returns 
+        ----------
+        Data : DataFrame
+            DataFrame giving current minimum, average distance in solution set, 
+            number of clusters in solution found by KMeans, and trial number
+        """
         columns = ["sim", "acqf", "num_sol", "curr_min", "avg_dist", "num_cluster", "trial"]
         result = pd.DataFrame(columns = columns)
         

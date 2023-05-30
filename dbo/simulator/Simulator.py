@@ -7,7 +7,7 @@ class Simulator:
     """
     General simulator wrapper class
     
-    Args
+    Parameters
     ----------
     dim : float
         Dimension of the problem
@@ -27,14 +27,15 @@ class Simulator:
         """
         For a given input, generate the corresponding output from the simulator
 
-        Args
+        Parameters
         ----------
         X : Tensor
             input which matches dimension and bounds criteria
         
         Returns
         ----------
-        Tensor : output of the simulation
+        result : Tensor
+            output of the simulation
         
         """
         return 0
@@ -43,7 +44,7 @@ class Simulator:
         """
         Specify a current diversity metric between two points
 
-        Args
+        Parameters
         ----------
         X : Tensor
             input 1
@@ -52,7 +53,8 @@ class Simulator:
         
         Returns
         ----------
-        float : a diversity metric 
+        diversity : float
+            any generic metric
         """
         return 0
     
@@ -60,14 +62,14 @@ class Simulator:
         """
         Convert input of any dimension into [0,1] hypercube
 
-        Args
+        Parameters
         ----------
         train_x : Tensor
             Training X value to be converted
         
         Returns
         ----------
-        Tensor : converted value
+        converted value : Tensor
         """
         train_x_i = torch.clone(train_x)
         for dim in range(self.bounds.shape[1]):
@@ -80,14 +82,14 @@ class Simulator:
         """
         Convert [0,1] input back into unnormalized form
 
-        Args
+        Parameters
         ----------
         train_x : Tensor
             Training X value to be converted
         
         Returns
         ----------
-        Tensor : converted value
+        Converted value : Tensor
         """
         train_x = torch.clone(train_x_i)
         for dim in range(self.bounds.shape[1]):
@@ -100,14 +102,14 @@ class Simulator:
         """
         Convert output into z-score normalized
 
-        Args
+        Parameters
         ----------
         train_obj : Tensor
             Training objective value to be converted
         
         Returns
         ----------
-        Tensor : converted value
+        Converted value : Tensor
         """
         mean = train_obj.mean().item()
         std = train_obj.std().item()
@@ -117,14 +119,14 @@ class Simulator:
         """
         Convert output from z-score normalized into regular form
 
-        Args
+        Parameters
         ----------
         train_obj : Tensor
             Training objective value to be converted
         
         Returns
         ----------
-        Tensor : converted value
+        Converted value : Tensor
         """
         assert std > 0
         return train_obj * std + mean
