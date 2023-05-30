@@ -135,7 +135,7 @@ class Plotter:
                 k = 0
                 for val in torch_ind:
                     if val:
-                        ind.append(i)
+                        ind.append(k)
                     k += 1
 
                 feasible_sol, feasible_x = experiment_one.y[ind], experiment_one.x[ind]
@@ -174,7 +174,6 @@ class Plotter:
             for acqf in acqf_func:
 
                 res = np.zeros((trial_num, len(minima_list)))
-                minima_ref = [0] * len(minima_list)
 
                 ind = 0
                 for experiment in self.experiment_list:
@@ -182,12 +181,12 @@ class Plotter:
                     if experiment.sim != function or experiment.acqf != acqf:
                         continue
 
-
                     for k in range(len(minima_list)):
                         min_dist = float("inf")
                         for row in experiment.x.numpy():
                             min_dist = min(min_dist, np.linalg.norm(minima_list[k] - row))
                         res[ind][k] = min_dist
+                    ind += 1
 
                 xs = ['x' + str(k) for k in range(1, len(minima_list) + 1)]
                 ax[i][j % len(acqf_func)].bar(xs, res.mean(axis = 0))
