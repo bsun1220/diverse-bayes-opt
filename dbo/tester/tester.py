@@ -1,5 +1,5 @@
 from dbo.simulator.Simulator import *
-from dbo.acquisition import *
+from dbo.acquisition.AcquisitionWrapperClass import AcquisitionWrapper
 from botorch.acquisition.analytic import AnalyticAcquisitionFunction
 from collections import namedtuple
 import torch
@@ -12,7 +12,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 BayesOptResult = namedtuple("BayesOptResult", ['x', 'y'])
-ExperimentResult = namedtuple("ExperimentResult", ['trial', 'acqf', 'sim', 'x', 'y', 'min'])
+ExperimentResult = namedtuple("ExperimentResult", ['trial', 'acqf', 'sim', 'x', 'y', 'max'])
 
 class Tester:
     """
@@ -36,9 +36,8 @@ class Tester:
         self.refit_param = refit_param
         self.error_term = error_term
     
-    def perform_bayes_opt(self, simulator : Simulator, 
-                          acquisition : AnalyticAcquisitionFunction,
-                          param_settings : dict = {}) -> BayesOptResult:
+    def perform_bayes_opt(self, simulator : Simulator, acquisition : AcquisitionWrapper) -> BayesOptResult:
+        
         """
         Full bayesian optimization loop
 
@@ -56,7 +55,9 @@ class Tester:
         result : BayesOptResult
             Returns all x and y values from the optimization loop
         """
+      
         dim = simulator.dim
+                              
         
         #actual observed
         obs_x = simulator.revert_input(torch.rand(self.num_design * dim, dim))
@@ -73,9 +74,8 @@ class Tester:
         fit_gpytorch_mll(mll)
         
         for i in range(self.num_sim * dim):
-            best_f = model_output.min()
-            acqf = acquisition(model = model, best_f = model_output.min(), **param_settings)
-            new_point, _ = optimize_acqf(acqf, bounds=model_bounds, q = 1, num_restarts = 5, raw_samples = 100)
+            best_f = model_output.max()
+            new_point = acquisition.optimize_acquisition(best_f, model, model_bounds)
             eval_point = simulator.revert_input(new_point)
             eval_result = simulator.generate(eval_point).expand(1, 1)
             
@@ -101,7 +101,7 @@ class Tester:
         
     
     def perform_known_experiment(self, num_trials : int, simulator_list: list[Simulator],
-                           acquisition_list : list[tuple[AnalyticAcquisitionFunction, dict]]) -> list[ExperimentResult]:
+                           acquisition_list : list[AcquisitionWrapper]) -> list[ExperimentResult]:
         """
         Performs optimization over trial, acquisition, and simulator
 
@@ -117,24 +117,20 @@ class Tester:
         Returns
         ----------
         result : list[ExperimentResult]
-            list of result containing, trial, acqf, sim, x, y, and min
+            list of result containing, trial, acqf, sim, x, y, and max
         """
         ans_list = []
         
         for trial in range(num_trials):
             for simulator in simulator_list:
-                
-                for acquisition_detail in acquisition_list:
-                    acquisition, acquisition_params = acquisition_detail
-  
-                    result = self.perform_bayes_opt(simulator, acquisition, acquisition_params)
+
+                for acquisition in acquisition_list:
+
+                    result = self.perform_bayes_opt(simulator, acquisition)
                     
-                    exp_result = ExperimentResult(trial + 1, acquisition.__name__, 
-                                                  simulator.__class__.__name__, result.x, result.y, simulator.true_min)
+                    exp_result = ExperimentResult(trial + 1, acquisition.__class__.__name__, 
+                                                  simulator.__class__.__name__, result.x, result.y, simulator.true_max)
 
                     ans_list.append(exp_result)
         
         return ans_list
-            
-        
-        

@@ -39,7 +39,10 @@ class ExperimentMetrics(Metrics):
         for k in range(2, max_k + 1):
             kmeans = KMeans(n_clusters = k).fit(points)
             labels = kmeans.labels_
-            sil.append(silhouette_score(points, labels, metric = 'euclidean'))
+            try: 
+                sil.append(silhouette_score(points, labels, metric = 'euclidean'))
+            except:
+                sil.append(0)
 
         return np.argmax(np.array(sil)) + 2
         
@@ -61,15 +64,16 @@ class ExperimentMetrics(Metrics):
             DataFrame giving current minimum, average distance in solution set, 
             number of clusters in solution found by KMeans, and trial number
         """
-        columns = ["sim", "acqf", "num_sol", "curr_min", "avg_dist", "num_cluster", "trial"]
+        columns = ["sim", "acqf", "num_sol", "curr_max", "avg_dist", "num_cluster", "trial"]
         result = pd.DataFrame(columns = columns)
         
         for experiment in experiment_list:
-            min_val = experiment.y.min()
+            max_val = experiment.y.max()
             
-            factor = (1 + eps) if experiment.min > 0 else (1 - eps)
+            factor = (1 + eps) if experiment.max < 0 else (1 - eps)
+            threshold = factor * experiment.max if experiment.max != 0 else -eps
             
-            torch_ind = experiment.y < factor * experiment.min
+            torch_ind = experiment.y > threshold
             ind = []
             i = 0
             for val in torch_ind:
@@ -91,9 +95,7 @@ class ExperimentMetrics(Metrics):
             
             cluster_num = self.get_sil_score(feasible_x)
     
-    
-            res = [experiment.sim, experiment.acqf, len(feasible_x), min_val.item(), avg_dist, cluster_num, experiment.trial]
+            res = [experiment.sim, experiment.acqf, len(feasible_x), max_val.item(), avg_dist, cluster_num, experiment.trial]
             result.loc[len(result)] = res
-        
         
         return result

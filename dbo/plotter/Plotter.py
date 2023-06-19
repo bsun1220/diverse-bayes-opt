@@ -52,14 +52,14 @@ class Plotter:
 
             ind += 1
         
-    def plot_min_sol(self, start_index : int  = 0) -> None:
+    def plot_opt_gap(self, start_index : int  = 0) -> None:
         """
-        Plot the existing minimum solution over trials
+        Plot the optimization gap
 
         Parameters
         ----------
         start_index : int
-            starting index in the minimum solution chart
+            starting index in the optimization_gap
         """
         functions = self.result_df['sim'].unique()
         acqf_func = self.result_df['acqf'].unique()
@@ -83,8 +83,8 @@ class Plotter:
                 ind = 0
                 length = len(data[0])
                 for experiment in lst:
-                    val = np.minimum.accumulate(experiment.y.numpy()).flatten()
-                    data[ind] = val
+                    val = np.maximum.accumulate(experiment.y.numpy()).flatten()
+                    data[ind] = np.abs(val - experiment.max)
                     ind += 1
                 
                 data = data[:, start_index:]
@@ -125,12 +125,13 @@ class Plotter:
                         experiment_one = experiment
                         break
 
-                min_val = experiment_one.y.min()
+                max_val = experiment_one.y.max()
 
 
-                factor = (1 + self.eps) if experiment_one.min > 0 else (1 - self.eps)
+                factor = (1 + self.eps) if experiment_one.max < 0 else (1 - self.eps)
+                threshold = -self.eps if experiment_one.max == 0 else factor * experiment_one.max
 
-                torch_ind = experiment_one.y < factor * experiment_one.min
+                torch_ind = experiment_one.y > threshold
                 ind = []
                 k = 0
                 for val in torch_ind:
@@ -166,7 +167,7 @@ class Plotter:
         i = 0
         j = 0
 
-        fig, ax = plt.subplots(len(functions), len(acqf_func))
+        fig, ax = plt.subplots(len(functions), len(acqf_func), sharey = 'row')
         fig.tight_layout(pad = 2.0)
 
         for function in functions:
@@ -193,7 +194,6 @@ class Plotter:
                 ax[i][j % len(acqf_func)].set_title(function + " " + acqf)
                 j += 1
             i += 1
-                
                 
                         
                         
