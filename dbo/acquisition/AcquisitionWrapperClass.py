@@ -18,3 +18,4 @@ class AcquisitionWrapper():
 
     def optimize_acquisition(self, best_f : float, model : FixedNoiseGP, model_bounds : Tensor) -> Tensor:
         return torch.rand(1)
+        

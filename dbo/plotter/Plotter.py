@@ -17,11 +17,12 @@ class Plotter:
     eps : float
         penalization error for what is considered a feasible set
     """
-    def __init__(self, experiment_list : list[ExperimentResult], eps : float = 0.3) -> None:
+    def __init__(self, experiment_list : list[ExperimentResult], eps : float = 0.3, max_known : bool = True) -> None:
         self.experiment_list = experiment_list
 
-        experiment_metric = ExperimentMetrics()
-        self.result_df = experiment_metric.get_dataframe(experiment_list, eps)
+        if max_known:
+            experiment_metric = ExperimentMetrics()
+            self.result_df = experiment_metric.get_dataframe(experiment_list, eps)
         self.eps = eps
     
     
@@ -39,6 +40,7 @@ class Plotter:
 
         fig, ax = plt.subplots(len(functions))
         fig.tight_layout(pad = 2.0)
+        fig.suptitle(f"{name} Distribution")
 
         ind = 0
         for function in functions:
@@ -51,6 +53,58 @@ class Plotter:
                 ax[ind].legend()
 
             ind += 1
+
+        plt.subplots_adjust(top=0.925)
+
+    def plot_max(self, start_index : int  = 0) -> None:
+        """
+        Plot the optimization gap
+
+        Parameters
+        ----------
+        start_index : int
+            starting index in the optimization_gap
+        """
+        
+        functions = self.result_df['sim'].unique()
+        acqf_func = self.result_df['acqf'].unique()
+        
+        fig, ax = plt.subplots(len(functions))
+        fig.tight_layout(pad = 2.0)
+        color_list = ['blue', 'red', 'green', 'yellow']
+        
+        i = 0
+        j = 0
+        for function in functions:
+            for acqf in acqf_func: 
+                
+                lst = []
+                for experiment in self.experiment_list:
+                    if experiment.sim == function and experiment.acqf == acqf:
+                        lst.append(experiment)
+                
+                data = np.zeros((len(lst), len(lst[0].x)))
+                
+                ind = 0
+                length = len(data[0])
+                for experiment in lst:
+                    val = np.maximum.accumulate(experiment.y.numpy()).flatten()
+                    data[ind] = val
+                    ind += 1
+                
+                data = data[:, start_index:]
+                mean = np.median(data, axis = 0)
+                per_25 = np.quantile(data, q = 0.25, axis = 0)
+                per_75 = np.quantile(data, q = 0.75, axis = 0)
+                
+                ax[i].plot(np.arange(start_index, length), mean, color = color_list[j%len(acqf_func)], label = acqf)
+                ax[i].fill_between(np.arange(start_index, length), per_25, per_75, color = color_list[j%len(acqf_func)], alpha=.15)
+                ax[i].legend()
+                ax[i].set_title(function)
+                j += 1
+            i += 1
+
+        plt.subplots_adjust(top=0.925)
         
     def plot_opt_gap(self, start_index : int  = 0) -> None:
         """
@@ -66,6 +120,7 @@ class Plotter:
         
         fig, ax = plt.subplots(len(functions))
         fig.tight_layout(pad = 2.0)
+        fig.suptitle("Optimization Gap")
         color_list = ['blue', 'red', 'green', 'yellow']
         
         i = 0
@@ -98,6 +153,8 @@ class Plotter:
                 ax[i].set_title(function)
                 j += 1
             i += 1
+
+        plt.subplots_adjust(top=0.925)
         
     def plot_scatter_2d(self, trial : int) -> None:
         """
@@ -108,9 +165,11 @@ class Plotter:
         trial : int
             trial number to look over
         """
+    
         functions = self.result_df['sim'].unique()
         acqf_func = self.result_df['acqf'].unique()
         fig, ax = plt.subplots(len(functions), len(acqf_func))
+        fig.suptitle("Average Minima Distance")
         fig.tight_layout(pad = 2.0)
 
         i = 0
@@ -149,6 +208,7 @@ class Plotter:
                 j += 1
 
             i += 1
+        plt.subplots_adjust(top=0.925)
 
     def plot_local_minima(self, local_minima : dict) -> None:
         """
@@ -169,6 +229,7 @@ class Plotter:
 
         fig, ax = plt.subplots(len(functions), len(acqf_func), sharey = 'row')
         fig.tight_layout(pad = 2.0)
+        fig.suptitle("Minima Distribution")
 
         for function in functions:
             minima_list = local_minima[function]
@@ -194,6 +255,9 @@ class Plotter:
                 ax[i][j % len(acqf_func)].set_title(function + " " + acqf)
                 j += 1
             i += 1
+
+        plt.subplots_adjust(top=0.925)
+                
                 
                         
                         

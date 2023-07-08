@@ -86,7 +86,7 @@ class Tester:
             model = model.condition_on_observations(X = new_point, Y = reg_eval_result, 
                                                 noise = torch.as_tensor(self.error_term).expand(1,1))
             
-            if i % dim * self.refit_param == 0:
+            if i % (dim * self.refit_param) == 0:
                 model_output = simulator.revert_output(model_output, mean, sigma)
                 model_output, mean, sigma = simulator.scalarize_output(model_output)
                 model = FixedNoiseGP(train_X = model_input, train_Y = model_output, train_Yvar = var)
@@ -97,8 +97,6 @@ class Tester:
         obs_obj = simulator.revert_output(model_output, mean, sigma)
         
         return BayesOptResult(obs_x, obs_obj)
-            
-        
     
     def perform_known_experiment(self, num_trials : int, simulator_list: list[Simulator],
                            acquisition_list : list[AcquisitionWrapper]) -> list[ExperimentResult]:
@@ -134,3 +132,6 @@ class Tester:
                     ans_list.append(exp_result)
         
         return ans_list
+            
+        
+        

@@ -7,6 +7,7 @@ from botorch.utils.probability.utils import (
     phi,
 )
 from botorch.models.gpytorch import GPyTorchModel
+from botorch.models.gp_regression import FixedNoiseGP
 
 class DiverseExpectedImprovement(AnalyticAcquisitionFunction):
     """
@@ -21,7 +22,7 @@ class DiverseExpectedImprovement(AnalyticAcquisitionFunction):
     epsilon_ : float
         Threshold for error
     best_f : float
-        Current best minimum found so far
+        Current best maximum found so far
     """
     def __init__(self, model : GPyTorchModel, lambda_ : float, epsilon_ : float, best_f : float):
         super().__init__(model=model)
@@ -32,9 +33,9 @@ class DiverseExpectedImprovement(AnalyticAcquisitionFunction):
     @t_batch_mode_transform(expected_q = 1)
     def forward(self, X: Tensor) -> Tensor:
         mean, sigma = self._mean_and_sigma(X)
-        factor = (1 + self.epsilon_ ) if self.best_f > 0 else (1 - self.epsilon_)
+        factor = (1 + self.epsilon_ ) if self.best_f < 0 else (1 - self.epsilon_)
         
-        ei_portion = Phi((self.best_f - mean)/sigma) * (self.best_f - mean)
-        dei_portion = phi((self.best_f - mean)/sigma) + self.lambda_ * Phi((factor * self.best_f - mean)/sigma)
+        ei_portion = Phi((mean - self.best_f)/sigma) * (mean - self.best_f)
+        dei_portion = phi((mean - self.best_f)/sigma) + self.lambda_ * Phi((mean - factor * self.best_f)/sigma)
         
         return ei_portion + dei_portion * sigma

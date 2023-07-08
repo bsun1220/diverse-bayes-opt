@@ -40,3 +40,6 @@ class KGWrapper(AcquisitionWrapper):
         new_point,_ = optimize_acqf(qKG, bounds=model_bounds, 
                                   q = 1, num_restarts = self.num_restarts, raw_samples = self.raw_samples)
         return new_point
+        
+    
+        

@@ -68,7 +68,7 @@ class Hartmann6DSimulator(Simulator):
         
         super().__init__(6, uid, bounds)
         self.true_max = 3.32237
-        self.Hartmann = Hartmann(dim = 6)
+        self.Hartmann = Hartmann(dim = 6, negate = True)
     
     def generate(self, X:Tensor) -> Tensor:
         return self.Hartmann(X)
@@ -79,7 +79,7 @@ class Griewank5DSimulator(Simulator):
         
         super().__init__(5, uid, bounds)
         self.true_max = 0
-        self.Griewank = Griewank(dim = 5)
+        self.Griewank = Griewank(dim = 5, negate = True)
     
     def generate(self, X:Tensor) -> Tensor:
         return self.Griewank(X)
@@ -90,7 +90,7 @@ class Michalewicz5DSimulator(Simulator):
         
         super().__init__(5, uid, bounds)
         self.true_max = 4.687
-        self.Michalewicz = Michalewicz(dim = 5)
+        self.Michalewicz = Michalewicz(dim = 5, negate = True)
     
     def generate(self, X:Tensor) -> Tensor:
         return self.Michalewicz(X)
