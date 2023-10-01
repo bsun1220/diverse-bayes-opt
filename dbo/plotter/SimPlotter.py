@@ -24,7 +24,7 @@ class SimPlotter:
             self.sim_list.add(experiment.sim)
             self.acqf_list.add(experiment.acqf)
     
-    def plot_max(self, start_index : int  = 0) -> None:
+    def plot_min(self, start_index : int  = 0) -> None:
         """
         Plot the optimization gap
 
@@ -54,7 +54,7 @@ class SimPlotter:
                 ind = 0
                 length = len(data[0])
                 for experiment in lst:
-                    val = np.maximum.accumulate(experiment.y.numpy()).flatten()
+                    val = np.minimum.accumulate(experiment.y.numpy()).flatten()
                     data[ind] = val
                     ind += 1
                 

@@ -6,7 +6,7 @@ class LunarSimulator(Simulator):
         bounds = torch.tensor([[0.0] * 12, [1.0] * 12])
         self.seed = seed
         dim = 12
-        self.true_max = 'unknown'
+        self.true_min = 'unknown'
         super().__init__(dim, uid, bounds)
 
     def generate(self, X : Tensor) -> Tensor:
@@ -16,7 +16,7 @@ class LunarSimulator(Simulator):
         ind = 0
         for row in X:
             reward = simulate_lunar_lander((row, self.seed))
-            res[ind] = reward
+            res[ind] = -reward
             ind += 1
 
         return torch.Tensor(res)

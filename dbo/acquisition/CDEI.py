@@ -9,7 +9,7 @@ from botorch.utils.probability.utils import (
 from botorch.models.gpytorch import GPyTorchModel
 from botorch.models.gp_regression import FixedNoiseGP
 
-class DiverseExpectedImprovement(AnalyticAcquisitionFunction):
+class ContourDiverseImprovement(AnalyticAcquisitionFunction):
     """
     Diverse Expected Improvement Implementation
     
@@ -35,9 +35,12 @@ class DiverseExpectedImprovement(AnalyticAcquisitionFunction):
     @t_batch_mode_transform(expected_q = 1)
     def forward(self, X: Tensor) -> Tensor:
         mean, sigma = self._mean_and_sigma(X)
-        factor = (1 - self.epsilon_ ) if self.best_f < 0 else (1 + self.epsilon_)
-        z = (self.best_f - mean)/sigma
-        exploit = Phi(z) * (self.best_f - mean)
-        explore = (phi(z) + self.lambda_ * Phi((factor * self.best_f - mean)/sigma)) * sigma
+        gamma = self.best_f + self.epsilon_
+        z = (gamma - mean)/sigma
         
-        return exploit + explore
+        a = (gamma - mean) * sigma * (phi(z) - 3 * phi(z + self.lambda_))
+        b = ((mean - gamma)**2) * (2 * Phi(z) - Phi(z + self.lambda_))
+        c = self.lambda_ * phi(z + self.lambda_) + 2 * Phi(z) + ((self.lambda_**2) -1) * Phi(z + self.lambda_)
+        c *= (sigma ** 2)
+        
+        return a + b + c

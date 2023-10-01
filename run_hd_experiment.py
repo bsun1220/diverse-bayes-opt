@@ -1,14 +1,16 @@
 from dbo.simulator.TestFunctions import *
-from dbo.acquisition.Wrappers import (EIWrapper, DEIWrapper, KGWrapper)
+from dbo.acquisition.Wrappers import (EIWrapper, DEIWrapper, AltDEIWrapper, CDEIWrapper)
 from dbo.tester.Tester import *
 from dbo.metrics.ExperimentMetric import *
 from dbo.plotter.Plotter import *
+from dbo.distance.Distance import EuclideanNorm
 import pickle
+
+norm = EuclideanNorm(2)
 
 test = Tester(5, 15, 10)
 simulator_hd_list = [Hartmann6DSimulator(), Griewank5DSimulator(), Michalewicz5DSimulator()]
-acquisition_list = [DEIWrapper(lambda_ = 1, epsilon = 0.1), EIWrapper()]
-
+acquisition_list = [CDEIWrapper(1, 0.1, True), DEIWrapper(lambda_ = 1, epsilon = 0.1), 
+                    EIWrapper(), AltDEIWrapper(epsilon = 0.1, norm = norm)]
 experiment_hd_list = test.perform_known_experiment(100, simulator_hd_list, acquisition_list)
-
 pickle.dump(experiment_hd_list, open( "results/experiment_hd.pkl", "wb" ) )

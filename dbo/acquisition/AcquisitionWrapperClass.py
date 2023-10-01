@@ -16,6 +16,6 @@ class AcquisitionWrapper():
         self.num_restarts = num_restarts
         self.raw_samples = raw_samples
 
-    def optimize_acquisition(self, best_f : float, model : FixedNoiseGP, model_bounds : Tensor) -> Tensor:
+    def optimize_acquisition(self, best_x : Tensor, best_f : float, model : FixedNoiseGP, model_bounds : Tensor) -> Tensor:
         return torch.rand(1)
         

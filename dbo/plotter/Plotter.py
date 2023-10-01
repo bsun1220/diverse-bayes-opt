@@ -17,10 +17,10 @@ class Plotter:
     eps : float
         penalization error for what is considered a feasible set
     """
-    def __init__(self, experiment_list : list[ExperimentResult], eps : float = 0.3, max_known : bool = True) -> None:
+    def __init__(self, experiment_list : list[ExperimentResult], eps : float = 0.3, min_known : bool = True) -> None:
         self.experiment_list = experiment_list
 
-        if max_known:
+        if min_known:
             experiment_metric = ExperimentMetrics()
             self.result_df = experiment_metric.get_dataframe(experiment_list, eps)
         self.eps = eps
@@ -56,7 +56,7 @@ class Plotter:
 
         plt.subplots_adjust(top=0.925)
 
-    def plot_max(self, start_index : int  = 0) -> None:
+    def plot_min(self, start_index : int  = 0) -> None:
         """
         Plot the optimization gap
 
@@ -88,7 +88,7 @@ class Plotter:
                 ind = 0
                 length = len(data[0])
                 for experiment in lst:
-                    val = np.maximum.accumulate(experiment.y.numpy()).flatten()
+                    val = np.minimum.accumulate(experiment.y.numpy()).flatten()
                     data[ind] = val
                     ind += 1
                 
@@ -138,8 +138,8 @@ class Plotter:
                 ind = 0
                 length = len(data[0])
                 for experiment in lst:
-                    val = np.maximum.accumulate(experiment.y.numpy()).flatten()
-                    data[ind] = np.abs(val - experiment.max)
+                    val = np.minimum.accumulate(experiment.y.numpy()).flatten()
+                    data[ind] = np.abs(val - experiment.min)
                     ind += 1
                 
                 data = data[:, start_index:]
@@ -184,13 +184,13 @@ class Plotter:
                         experiment_one = experiment
                         break
 
-                max_val = experiment_one.y.max()
+                min_val = experiment_one.y.min()
 
 
-                factor = (1 + self.eps) if experiment_one.max < 0 else (1 - self.eps)
-                threshold = -self.eps if experiment_one.max == 0 else factor * experiment_one.max
+                factor = (1 - self.eps) if experiment_one.min < 0 else (1 + self.eps)
+                threshold = -self.eps if experiment_one.min == 0 else factor * experiment_one.min
 
-                torch_ind = experiment_one.y > threshold
+                torch_ind = experiment_one.y < threshold
                 ind = []
                 k = 0
                 for val in torch_ind:
@@ -222,7 +222,7 @@ class Plotter:
         functions = self.result_df['sim'].unique()
         acqf_func = self.result_df['acqf'].unique()
 
-        trial_num = self.result_df['trial'].max()
+        trial_num = self.result_df['trial'].min()
 
         i = 0
         j = 0
